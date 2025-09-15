@@ -25,7 +25,7 @@ add_library(costmap_lib
 target_include_directories(costmap_lib
   PUBLIC include)
 # Add ROS2 dependencies required by package
-ament_target_dependencies(costmap_lib rclcpp)
+ament_target_dependencies(costmap_lib rclcpp std_msgs)
 
 # Create ROS2 node executable from source files
 add_executable(costmap_node src/costmap_node.cpp)

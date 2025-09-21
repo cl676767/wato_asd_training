@@ -5,8 +5,8 @@
 
 CostmapNode::CostmapNode()
     : Node("costmap"),
-      width_(100),
-      height_(100),
+      width_(300),
+      height_(300),
       resolution_(0.1),
       inflation_radius_(1),
       costmap2D_(height_, std::vector<int>(width_, 0))
@@ -81,10 +81,9 @@ void CostmapNode::publishCostmap() {
     message.info.width = width_;
     message.info.height = height_;
     message.info.resolution = resolution_;
-    message.info.origin.position.x = width_ / 2.0 * resolution_;
-    message.info.origin.position.y = height_ / 2.0 * resolution_;
-    message.info.origin.position.z = 0.0;
-    message.info.origin.orientation.w = 1.0; // identity quaternion
+    message.info.origin.position.x = width_ / -2.0 * resolution_;
+    message.info.origin.position.y = height_ / -2.0 * resolution_;
+    //message.info.origin.orientation.w = 1.0; // identity quaternion
 
     message.header.stamp = this->now();
     message.header.frame_id = "map";

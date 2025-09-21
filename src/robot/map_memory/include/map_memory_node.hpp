@@ -29,6 +29,7 @@ private:
     const double distance_threshold;
     bool costmap_updated_;
     bool should_update_map_;
+    bool first_costmap_received_;
 };
 
 #endif // MAP_MEMORY_NODE_HPP_

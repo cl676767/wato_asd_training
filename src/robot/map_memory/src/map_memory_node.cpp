@@ -7,9 +7,10 @@ MapMemoryNode::MapMemoryNode()
     : Node("map_memory_node"),
       last_x(0.0),
       last_y(0.0),
-      distance_threshold(5.0),
+      distance_threshold(0.0),//switch back to a positive number after testing
       costmap_updated_(false),
-      should_update_map_(false)
+      should_update_map_(false),
+      first_costmap_received_(false)
 {
     // Subscribers
     costmap_sub_ = this->create_subscription<nav_msgs::msg::OccupancyGrid>(
@@ -31,14 +32,8 @@ MapMemoryNode::MapMemoryNode()
         std::bind(&MapMemoryNode::updateMap, this)
     );
 
-    // Initialize global map
-    global_map_.info.resolution = 0.1;
-    global_map_.info.width = 300;
-    global_map_.info.height = 300;
-    global_map_.info.origin.position.x = 0.0;
-    global_map_.info.origin.position.y = 0.0;
-    global_map_.info.origin.orientation.w = 1.0; // identity quaternion
-    global_map_.data.resize(global_map_.info.width * global_map_.info.height, 0);
+
+    
 }
 
 void MapMemoryNode::costmapCallback(const nav_msgs::msg::OccupancyGrid::SharedPtr msg) {
@@ -55,6 +50,7 @@ void MapMemoryNode::odomCallback(const nav_msgs::msg::Odometry::SharedPtr msg) {
         last_x = x;
         last_y = y;
         should_update_map_ = true;
+        
     }
 }
 
@@ -67,27 +63,19 @@ void MapMemoryNode::updateMap() {
 }
 
 void MapMemoryNode::integrateCostmap() {
-    for (int y = 0; y < int(latest_costmap_.info.height); y++) {
-        for (int x = 0; x < int(latest_costmap_.info.width); x++) {
-            int local_index = y * latest_costmap_.info.width + x;
-            int value = latest_costmap_.data[local_index];
-            if (value < 0) continue; // skip unknown
-
-            int gx = static_cast<int>(
-                (latest_costmap_.info.origin.position.x + x * latest_costmap_.info.resolution - last_x) 
-                / global_map_.info.resolution
-            );
-            int gy = static_cast<int>(
-                (latest_costmap_.info.origin.position.y + y * latest_costmap_.info.resolution - last_y) 
-                / global_map_.info.resolution
-            );
-
-            if (gx < 0 || gy < 0 || gx >= int(global_map_.info.width) || gy >= int(global_map_.info.height)) continue;
-
-            int global_index = gy * global_map_.info.width + gx;
-            global_map_.data[global_index] = std::max(int(global_map_.data[global_index]), value);
-        }
+    if (global_map_.data.empty()) {
+        // Initialize global map from first costmap
+        global_map_ = latest_costmap_;
+        return;
     }
+    global_map_ = latest_costmap_;
+    /* for (int i = 0; i < latest_costmap_.data.size(); ++i) {
+        int val = latest_costmap_.data[i];
+        if (val >= 0) {  // Known cell (occupied or free)
+            global_map_.data[i] = val;
+        }
+    } */
+    
 }
 
 int main(int argc, char **argv) {
